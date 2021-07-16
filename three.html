@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+
+    </style>
+</head>
+<body>
+
+
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        /************************************************************************************************
+ * Ball
+*************************************************************************************************/
+function Ball ($box, color, $index, $kIndex, $color2) {
+  this.x = 0;
+  this.y = 0;
+  this.tx = 0;
+  this.ty = 0;
+  this.v = 0;
+
+  this.width = 0;
+  this.height = 0;
+  this.size = 100;
+  this.stop = false;
+  this.vx = 0;
+  this.vy = 0;
+  this.mass = 1;
+  this.rotation = 0;
+  this.scaleX = 1;
+  this.scaleY = 1;
+  this.color = utils.parseColor(color);
+  this.color2 = $color2;
+  this.lineWidth = 0.5;
+  this.down = false;
+  this.box = $box;
+  this.box_x = 0;
+  this.box_y = 0;
+  this.blend = "normal";
+  this.shape = $index;
+  this.draws = true;
+  this.opacity = 1;
+  this.index = $kIndex;
+  this.tt = false;
+  this.tt2 = false;
+
+  this.mainIndex = 0;
+  this.gap = 0;
+}
+
+Ball.prototype.draw = function (context) {
+	context.clearRect ( 0 , 0 , this.width , this.height+110 );
+	if(this.draws == false) return;
+	
+	context.save();
+	context.globalCompositeOperation = this.blend;
+	context.translate(this.x, this.y);
+	context.rotate(this.rotation)
+	context.beginPath();
+
+	if(this.shape == 1){
+
+		context.moveTo(this.width/2, 5);
+		context.lineTo(this.width, this.height-5);
+		context.lineTo(0, this.height-5);
+		
+	}
+
+	if(this.shape == 0){
+		if(this.tt == true){
+			context.moveTo(0, 7);
+			context.lineTo(this.width/2, this.height-5);
+			context.lineTo(this.width, 7);
+		}else{
+			context.moveTo(0, 5);
+			context.lineTo(this.width/2, this.height-5);
+			context.lineTo(this.width, 5);
+		}
+
+	}
+
+	context.globalAlpha = this.opacity;
+	//context.closePath();
+	context.clip();
+	//context.drawImage(this.box, this.box_x - 10, this.box_y + 20);
+	context.drawImage(this.box, this.box_x, this.box_y);
+	if(this.color){
+		context.fillStyle = this.color;
+		context.fill();
+		this.opacitys(this.opacity);
+	}
+	context.restore();
+	
+	
+	if(this.color2 != null) this.drawLine(context);
+};
+
+Ball.prototype.drawLine = function (context) {
+	context.beginPath();
+	context.lineWidth = this.lineWidth;
+
+	if( this.mainIndex == 0){
+		if(this.shape == 1){
+			if(this.lineWidth == 3){
+				context.lineWidth = 0;
+				context.moveTo(this.width/2-1, 6);
+				context.lineTo(this.width-1, this.height-6);
+				context.lineTo(1, this.height-6);
+				context.lineWidth = 2;
+				context.lineTo(this.width/2-1, 6);
+			}else{
+				context.moveTo(this.width/2-1, 6);
+				context.lineTo(this.width-2, this.height-6);
+				context.lineTo(1, this.height-6);
+				context.lineTo(this.width/2-1, 6);
+			}
+
+		}
+
+		if(this.shape == 0){
+			context.moveTo(0, 6);
+			context.lineTo(this.width/2+0, this.height-6);
+			context.lineTo(this.width+0, 6);
+			context.lineTo(0, 6);
+		}
+	}
+
+	if( this.mainIndex == 1){
+		if(this.shape == 1){
+			if(this.tt2 == true){
+				context.moveTo(this.width/2+0, 4);
+				context.lineTo(this.width-2, this.height-6);
+				context.lineTo(1, this.height-6);
+				context.lineTo(this.width/2+0, 4);
+			}else{
+				context.moveTo(this.width/2+1, 2);
+				context.lineTo(this.width-2, this.height-6);
+				context.lineTo(1, this.height-6);
+				context.lineTo(this.width/2+1, 2);
+			}
+		}
+		
+		//역삼각형
+		if(this.shape == 0){
+			context.moveTo(2, 6);
+			context.lineTo(this.width/2-0, this.height-6 );
+			context.lineTo(this.width-0, 6);
+			context.lineTo(2, 6);
+		}
+	}
+
+	if( this.mainIndex == 2){
+		//역삼각형
+		if(this.shape == 1){
+			context.moveTo(this.width/2+1, 4);
+			context.lineTo(this.width-2, this.height-6+ this.gap);
+			context.lineTo(1, this.height-6+ this.gap);
+			context.lineTo(this.width/2+1, 4);
+		}
+
+		if(this.shape == 0){
+			context.moveTo(1, 5);
+			context.lineTo(this.width/2-1, this.height-6);
+			context.lineTo(this.width-1, 6);
+			context.lineTo(1, 5);
+		}
+	}
+
+
+	context.strokeStyle = this.color2;
+	context.stroke();
+}
+
+
+Ball.prototype.getBounds = function () {
+  return {
+    x: this.x - this.radius,
+    y: this.y - this.radius,
+    width: this.radius * 2,
+    height: this.radius * 2
+  };
+};
+
+Ball.prototype.opacitys = function (alpha) {
+	color = this.color;
+	if (typeof color === 'string' && color[0] === '#') {
+		color = window.parseInt(color.slice(1), 16);
+	  }
+	  alpha = (alpha === undefined) ? 1 : alpha;
+	  var r = color >> 16 & 0xff,
+		  g = color >> 8 & 0xff,
+		  b = color & 0xff,
+		  a = (alpha < 0) ? 0 : ((alpha > 1) ? 1 : alpha);
+	  if (a === 1) {
+		return "rgb("+ r +","+ g +","+ b +")";
+	  } else {
+		return "rgba("+ r +","+ g +","+ b +","+ a +")";
+	  }
+ };
+
+/************************************************************************************************
+ * Triangle
+*************************************************************************************************/
+function Triangle (color) {
+  this.x = 0;
+  this.y = 0;
+  this.tx = 0;
+  this.ty = 0;
+  this.v = 0;
+  this.width = 0;
+  this.height = 0;
+  this.vx = 0;
+  this.vy = 0;
+  this.mass = 1;
+  this.rotation = 0;
+  this.scaleX = 1;
+  this.scaleY = 1;
+  this.color = utils.parseColor(color);
+  this.lineWidth = 1;
+  this.down = false;
+  this.box_x = 0;
+  this.box_y = 0;
+  this.blend = "normal";
+  this.opacity = 1;
+  this.scaleX = 1;
+  this.scaleY = 1;
+}
+
+Triangle.prototype.draw = function (context) {
+	context.save();
+	//context.globalCompositeOperation = this.blend;
+	context.translate(this.x, this.y);
+	context.rotate(this.rotation)
+	//context.scale(this.scaleX, this.scaleY);
+	context.beginPath();
+	context.moveTo(0, 12);
+	context.lineTo(-15, -12);
+	context.lineTo(15, -12);
+
+	context.globalAlpha = this.opacity;
+	context.fillStyle = this.color;
+	context.fill();
+	//this.opacitys(this.opacity);
+	context.restore();
+};
+
+
+
+function extend(subClass, superClass) {
+	
+	var F = function() {
+	};
+	F.prototype = superClass.prototype;
+
+	subClass.prototype = new F();
+	subClass.prototype.constructor = subClass;
+	subClass.superclass = superClass.prototype;
+
+	if (superClass.prototype.constructor == Object.prototype.constructor) {
+		superClass.prototype.constructor = superClass;
+	}
+}
+
+
+    </script>
+    
+</body>
+</html>
